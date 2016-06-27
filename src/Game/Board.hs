@@ -1,22 +1,27 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Game.Board
 (
   drawBoard
 , emptyBoard
 , addPiece
+, moves
+, victory
+, allXs
+, allOs
 , Board
 ) where
 
 import Data.Text (Text, pack)
-import Data.List (intercalate)
+import Data.List (intercalate, transpose)
 import Data.List.Split (chunksOf)
 import Game.Piece
 
 type Row      = [Piece]
 newtype Board = Board { getBoard :: [Row] }
 
-maxColumnIndex = 2
+maxColumnIndex = totalColumns - 1
 totalColumns   = 3
 
 emptyBoard :: Board
@@ -41,3 +46,41 @@ addPiece piece Board{getBoard = b} = makeNewBoard
         x (O xp _) = xp
         y (X _ yp) = yp
         y (O _ yp) = yp
+
+moves :: Board -> [Piece]
+moves Board{getBoard = b} = concatMap keepEmpties b
+  where
+    keepEmpties =
+      filter (\case
+        Empty _ _ -> True
+        _         -> False)
+
+victory :: Board -> (Piece -> Bool) -> Bool
+victory Board{getBoard = b} pfn =
+  checkRows b pfn ||
+  checkRows (transpose b) pfn ||
+  checkDiagonals b pfn
+
+allXs :: Piece -> Bool
+allXs (X _ _) = True
+allXs _       = False
+
+allOs :: Piece -> Bool
+allOs (O _ _) = True
+allOs _       = False
+
+checkRows :: [Row] -> (Piece -> Bool) -> Bool
+checkRows []     _   = False
+checkRows (r:rs) pfn = all pfn r || checkRows rs pfn
+
+checkDiagonals :: [Row] -> (Piece -> Bool) -> Bool
+checkDiagonals rs pfn = checkLeft rs || checkRight rs
+  where
+
+    checkLeft [[l, _, _],
+               [_, m, _],
+               [_, _, r]]  = pfn l && pfn m && pfn r
+
+    checkRight [[_, _, l],
+                [_, m, _],
+                [r, _, _]] = pfn l && pfn m && pfn r

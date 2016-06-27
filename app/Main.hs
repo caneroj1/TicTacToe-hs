@@ -5,8 +5,6 @@ import Control.Monad
 import Data.Text (unpack, split, pack)
 import System.Console.Haskeline
 
-data Player = P1 | P2 deriving Eq
-
 outputBoard :: Board -> IO ()
 outputBoard b = (putStrLn . unpack $ drawBoard b) >> putStrLn "\n"
 
@@ -27,6 +25,7 @@ main = gameLoop emptyBoard P1
   where
     gameLoop gameBoard P1 = do
       outputBoard gameBoard
+      print $ moves gameBoard
       piece <- getInput X
       gameLoop (addPiece piece gameBoard) P2
     gameLoop gameBoard P2 = do
