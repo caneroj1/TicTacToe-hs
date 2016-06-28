@@ -2,11 +2,10 @@ module Lib
   (
     module Game.Board
   , module Game.Piece
+  , module AI.Minimax
   )
 where
 
 import Game.Board
 import Game.Piece
-
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+import AI.Minimax

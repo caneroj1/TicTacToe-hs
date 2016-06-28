@@ -4,6 +4,8 @@ import Lib
 import Control.Monad
 import Data.Text (unpack, split, pack)
 import System.Console.Haskeline
+import Data.List (maximumBy)
+import Data.Ord (comparing)
 
 outputBoard :: Board -> IO ()
 outputBoard b = (putStrLn . unpack $ drawBoard b) >> putStrLn "\n"
@@ -20,15 +22,27 @@ getInput piece = do
                         $ pack ln
     mkPiece [x, y] = piece x y
 
+opponentMove :: Board -> Board
+opponentMove board = addPiece (real maxMove) board
+  where
+    validMoves = moves board
+    weighted   = zip (map (\p -> minimax (real p) board Maximize) validMoves) validMoves
+    maxMove    = snd $ maximumBy (comparing fst) weighted
+    real (Empty x y) = O x y
+
 main :: IO ()
 main = gameLoop emptyBoard P1
   where
     gameLoop gameBoard P1 = do
       outputBoard gameBoard
-      print $ moves gameBoard
-      piece <- getInput X
-      gameLoop (addPiece piece gameBoard) P2
+      if victory gameBoard allXs
+        then putStrLn "Victory!"
+        else do
+          piece <- getInput X
+          gameLoop (addPiece piece gameBoard) P2
     gameLoop gameBoard P2 = do
-      outputBoard gameBoard
-      piece <- getInput O
-      gameLoop (addPiece piece gameBoard) P1
+      let newBoard = opponentMove gameBoard
+      if victory newBoard allOs
+        then putStrLn "Defeat!"
+        else
+          gameLoop newBoard P1

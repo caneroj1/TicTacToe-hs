@@ -10,4 +10,4 @@ data Player = P1 | P2 deriving Eq
 instance Show Piece where
   show (X _ _)     = "X"
   show (O _ _)     = "O"
-  show (Empty x y) = " "--"(" ++ show x ++ "," ++ show y ++ ")"
+  show (Empty x y) = " "
