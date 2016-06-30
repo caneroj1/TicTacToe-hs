@@ -30,9 +30,9 @@ opponentMove :: Bool -> Board -> Board
 opponentMove isX board = addPiece (real maxMove) board
   where
     validMoves = moves board
-    weighted   = zip (map (minimax board Maximize . real) validMoves) validMoves
+    weighted   = zip (map (minimax board Maximize isX . real) validMoves) validMoves
     maxMove    = snd $ maximumBy (comparing fst) weighted
-    real (Empty x y) = if isX then X x y else O x y
+    real       = emptyToMove isX
 
 initGame :: IO Players
 initGame = do
@@ -73,6 +73,7 @@ main = do
     displayStatus isAI decision board
       | isAI && gameDone     = putStrLn "Defeat!"  >> finish
       | not isAI && gameDone = putStrLn "Victory!" >> finish
+      | null $ moves board   = putStrLn "Draw!"    >> finish
       | otherwise            = return ()
       where gameDone = victory board decision
 

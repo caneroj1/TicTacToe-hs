@@ -10,26 +10,28 @@ import Game.Piece
 data MinMax = Minimize |
               Maximize deriving Eq
 
-minimax :: Board -> MinMax -> Piece -> Int
-minimax board Maximize piece
-  | victoryForMe    = 1
-  | victoryForThem  = -1
-  | null validMoves = 0
-  | otherwise       = minimum $ map (minimax newBoard Minimize) validMoves
+minimax :: Board -> MinMax -> Bool -> Piece -> Int
+minimax board minmax isX piece
+  | iWon      =
+    case minmax of
+      Maximize -> 1
+      Minimize -> -1
+  | iLost     =
+    case minmax of
+      Maximize -> -1
+      Minimize -> 1
+  | noMoves   = 0
+  | otherwise =
+    case minmax of
+      Maximize -> minimum $ map (minimax newBoard Minimize (not isX) ) myMoves
+      Minimize -> maximum $ map (minimax newBoard Maximize (not isX) ) myMoves
   where
-    newBoard       = addPiece piece board
-    victoryForMe   = victory newBoard allOs
-    victoryForThem = victory newBoard allXs
-    validMoves     = map emptyToMove $ moves newBoard
-    emptyToMove (Empty x y) = X x y
-minimax board Minimize piece
-  | victoryForMe    = -1
-  | victoryForThem  = 1
-  | null validMoves = 0
-  | otherwise       = maximum $ map (minimax newBoard Maximize) validMoves
-  where
-    newBoard       = addPiece piece board
-    victoryForMe   = victory newBoard allXs
-    victoryForThem = victory newBoard allOs
-    validMoves     = map emptyToMove $ moves newBoard
-    emptyToMove (Empty x y) = O x y
+    newBoard      = addPiece piece board
+    iLost
+      | not isX   = victory newBoard allXs
+      | otherwise = victory newBoard allOs
+    iWon
+      | isX       = victory newBoard allXs
+      | otherwise = victory newBoard allOs
+    myMoves       = map (emptyToMove (not isX)) $ moves newBoard
+    noMoves       = null myMoves
