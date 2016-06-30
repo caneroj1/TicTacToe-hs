@@ -1,11 +1,5 @@
-module Lib
-  (
-    module Game.Board
-  , module Game.Piece
-  , module AI.Minimax
-  )
-where
-
-import Game.Board
-import Game.Piece
-import AI.Minimax
+module Lib (module X) where
+  import Game.Board  as X
+  import Game.Piece  as X
+  import Game.Player as X
+  import AI.Minimax  as X
