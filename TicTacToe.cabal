@@ -23,6 +23,7 @@ library
   build-depends:       base >= 4.7 && < 5
                      , text
                      , split
+                     , array
   default-language:    Haskell2010
 
 executable TicTacToe-exe
