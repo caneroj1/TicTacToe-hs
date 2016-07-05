@@ -27,12 +27,12 @@ getInput piece = do
     mkPiece [x, y] = piece x y
 
 opponentMove :: Bool -> Board -> Board
-opponentMove isX board = addPiece (real maxMove) board
+opponentMove isX brd = addPiece (snd $ minimax brd Maximize isX) brd
+
+opponentMoveAB :: Bool -> Board -> Board
+opponentMoveAB isX brd = addPiece move brd
   where
-    validMoves = moves board
-    weighted   = zip (map (minimax board Maximize isX . real) validMoves) validMoves
-    maxMove    = snd $ maximumBy (comparing fst) weighted
-    real       = emptyToMove isX
+    (s, move) = alphaBeta brd Maximize isX (minBound :: Int) (maxBound :: Int)
 
 initGame :: IO Players
 initGame = do
@@ -60,10 +60,10 @@ main = do
         else runPlayer x ai decision board p1 p2
 
     runAI x ai decision board p1 p2 =
-      let nextBoard = opponentMove x board
+      let nextBoard = opponentMoveAB x board
         in do
           displayStatus ai decision nextBoard
-          gameLoop (opponentMove x board) p2 p1
+          gameLoop nextBoard p2 p1
 
     runPlayer x ai decision board p1 p2= do
       nextBoard <- getNextBoard x board

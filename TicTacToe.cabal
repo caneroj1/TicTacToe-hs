@@ -20,10 +20,12 @@ library
                      , Game.Board
                      , Game.Player
                      , AI.Minimax
+                     , AI.AlphaBeta
   build-depends:       base >= 4.7 && < 5
                      , text
                      , split
                      , array
+                     , mtl
   default-language:    Haskell2010
 
 executable TicTacToe-exe

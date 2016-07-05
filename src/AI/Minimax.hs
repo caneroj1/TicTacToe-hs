@@ -6,32 +6,40 @@ module AI.Minimax
 
 import Game.Board
 import Game.Piece
+import Data.List (maximumBy)
+import Data.Foldable (minimumBy)
+import Data.Ord  (comparing)
 
 data MinMax = Minimize |
               Maximize deriving Eq
 
-minimax :: Board -> MinMax -> Bool -> Piece -> Int
-minimax board minmax isX piece
+minimax :: Board -> MinMax -> Bool -> (Int, Piece)
+minimax board minmax isX
   | iWon      =
     case minmax of
-      Maximize -> 1
-      Minimize -> -1
+      Maximize -> (1,  Empty 0 0)
+      Minimize -> (-1, Empty 0 0)
   | iLost     =
     case minmax of
-      Maximize -> -1
-      Minimize -> 1
-  | noMoves   = 0
+      Maximize -> (-1, Empty 0 0)
+      Minimize -> (1,  Empty 0 0)
+  | noMoves   =   (0,  Empty 0 0)
   | otherwise =
     case minmax of
-      Maximize -> minimum $ map (minimax newBoard Minimize (not isX) ) myMoves
-      Minimize -> maximum $ map (minimax newBoard Maximize (not isX) ) myMoves
+      Maximize -> maximumBy (comparing fst) $
+                  zip (map (fst . runNextMM board Minimize (not isX)) currMoves)
+                      currMoves
+      Minimize -> minimumBy (comparing fst) $
+                  zip (map (fst . runNextMM board Maximize (not isX)) currMoves)
+                      currMoves
   where
-    newBoard      = addPiece piece board
+    currMoves     = map (emptyToMove isX) $ moves board
     iLost
-      | not isX   = victory newBoard allXs
-      | otherwise = victory newBoard allOs
+      | not isX   = victory board allXs
+      | otherwise = victory board allOs
     iWon
-      | isX       = victory newBoard allXs
-      | otherwise = victory newBoard allOs
-    myMoves       = map (emptyToMove (not isX)) $ moves newBoard
-    noMoves       = null myMoves
+      | isX       = victory board allXs
+      | otherwise = victory board allOs
+    noMoves       = null currMoves
+    runNextMM brd minOrMax isX piece =
+      minimax (addPiece piece brd) minOrMax isX
