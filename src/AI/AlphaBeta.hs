@@ -21,7 +21,6 @@ type Beta  = Int
 type Depth = Maybe Int
 
 runMaxDepth :: Board -> MinMax -> Bool -> [Piece] -> (Int, Piece)
-runMaxDepth _     _        _   []  = (0, Empty 0 0)
 runMaxDepth board minmax isX moves =
   case minmax of
     Maximize -> heuristicBestMove maximumBy 1
@@ -29,14 +28,12 @@ runMaxDepth board minmax isX moves =
   where
     heuristicBestMove selectFn modifier =
       selectFn (comparing fst ) $
-        zip (map ((* modifier) . flip numberOfConnectedTiles isX . flip addPiece board)
+        zip (map ((* modifier) . flip sumOfWinPaths isX . flip addPiece board)
                   moves)
             moves
 
 alphaBeta :: Board -> MinMax -> Bool -> Alpha -> Beta -> Depth -> (Int, Piece)
 alphaBeta board minmax isX alpha beta depth
-  | reachedMaxDepth = runMaxDepth board minmax isX currMoves
-
   | iWon      =
     case minmax of
       Maximize -> (100,  Empty 0 0)
@@ -47,6 +44,8 @@ alphaBeta board minmax isX alpha beta depth
       Minimize -> (100,  Empty 0 0)
 
   | noMoves   =   (0,  Empty 0 0)
+
+  | reachedMaxDepth = runMaxDepth board minmax isX currMoves
 
   | otherwise =
     case minmax of

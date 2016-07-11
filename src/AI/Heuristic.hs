@@ -1,11 +1,34 @@
-module AI.Heuristic where
+module AI.Heuristic
+(
+  sumOfWinPaths
+, numberOfConnectedTiles
+) where
 
 import Game.Piece
 import Game.Board
-import Data.List
+import Data.List (partition, find)
 import qualified Data.Set as S
 import Control.Arrow ((&&&))
 import Data.Maybe (isJust, isNothing)
+
+scoreForlist :: Bool -> [Piece] -> Int
+scoreForlist isX
+  | isX       = diff . partition allXs
+  | otherwise = diff . partition allOs
+  where
+    diff (trueGroup, falseGroup) = length trueGroup - length falseGroup
+
+sumOfWinPaths :: Board -> Bool -> Int
+sumOfWinPaths board isX =
+  getScoreFor Row maxRowIndex    +
+  getScoreFor Col maxColumnIndex +
+  getDiagScore L                 +
+  getDiagScore R
+  where
+    getScoreFor loc maxIdx =
+      sum $ map (scoreForlist isX . piecesAtLoc board . loc) [0..maxIdx]
+    getDiagScore           =
+      scoreForlist isX . piecesAtLoc board . Diag
 
 numberOfConnectedTiles :: Board -> Bool -> Int
 numberOfConnectedTiles board isX =

@@ -49,7 +49,7 @@ opponentMoveAB isX brd = addPiece move brd
                           isX
                           (minBound :: Int)
                           (maxBound :: Int)
-                          Nothing
+                          (Just 4)
 
 initGame :: IO Players
 initGame = do

@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Game.Board
 (
@@ -11,6 +12,11 @@ module Game.Board
 , victory
 , allXs
 , allOs
+, piecesAtLoc
+, maxColumnIndex
+, maxRowIndex
+, Loc(..)
+, Orientation(..)
 , Board
 ) where
 
@@ -25,7 +31,8 @@ type BoardArray = Array (Int, Int) Piece
 
 newtype Board = Board { getBoard :: BoardArray }
 
-data Loc = Rows | Cols
+data Orientation = L | R
+data Loc         = Row Int | Col Int | Diag Orientation
 
 maxColumnIndex = totalColumns - 1
 maxRowIndex    = totalRows - 1
@@ -50,20 +57,19 @@ addPiece piece Board{getBoard = b} = Board makeNewBoard
   where makeNewBoard = b // [((getX piece, getY piece), piece)]
 
 moves :: Board -> [Piece]
-moves Board{getBoard = b} = keepEmpties $ elems b
+moves = flip getPieces keepEmpties
   where
-    keepEmpties =
-      filter (\case
+    keepEmpties = \case
         Empty _ _ -> True
-        _         -> False)
+        _         -> False
 
 getPieces :: Board -> (Piece -> Bool) -> [Piece]
 getPieces Board{getBoard = b} pfn = filter pfn $ elems b
 
 victory :: Board -> (Piece -> Bool) -> Bool
 victory Board{getBoard = b} pfn =
-  checkRowsOrColumns b Rows pfn ||
-  checkRowsOrColumns b Cols pfn ||
+  checkRowsOrColumns b Row pfn ||
+  checkRowsOrColumns b Col pfn ||
   checkDiagonals b pfn
 
 allXs :: Piece -> Bool
@@ -74,18 +80,25 @@ allOs :: Piece -> Bool
 allOs (O _ _) = True
 allOs _       = False
 
-checkRowsOrColumns :: BoardArray -> Loc -> (Piece -> Bool) -> Bool
-checkRowsOrColumns barr loc pfn = go loc 0
+piecesAtLoc :: Board -> Loc -> [Piece]
+piecesAtLoc Board{..} = piecesAt getBoard
+
+piecesAt :: BoardArray -> Loc -> [Piece]
+piecesAt barr (Row row) = [barr ! (i, row) | i <- [0..maxColumnIndex]]
+piecesAt barr (Col col) = [barr ! (col, i) | i <- [0..maxRowIndex]]
+piecesAt barr (Diag L)  = [barr ! (i, i)   | i <- [0..maxRowIndex]]
+piecesAt barr (Diag R)  = [barr ! (i, maxRowIndex - i) | i <- [0..maxRowIndex]]
+
+checkRowsOrColumns :: BoardArray -> (Int -> Loc) -> (Piece -> Bool) -> Bool
+checkRowsOrColumns barr locfn pfn = go locfn 0
   where
-    go loc pos
+    go locfn pos
       | pos == totalRows                                    = False
-      | all pfn $ pieces pos loc                            = True
-      | otherwise                                           = go loc (pos+1)
-    pieces pos Rows = [barr ! (i, pos) | i <- [0..maxColumnIndex]]
-    pieces pos Cols = [barr ! (pos, i) | i <- [0..maxRowIndex]]
+      | all pfn $ piecesAt barr (locfn pos)                 = True
+      | otherwise                                           = go locfn (pos+1)
 
 checkDiagonals :: BoardArray -> (Piece -> Bool) -> Bool
 checkDiagonals barr pfn = checkLeft || checkRight
   where
-    checkLeft  = all pfn [barr ! (i, i)               | i <- [0..maxRowIndex]]
-    checkRight = all pfn [barr ! (i, maxRowIndex - i) | i <- [0..maxRowIndex]]
+    checkLeft  = all pfn $ piecesAt barr (Diag L)
+    checkRight = all pfn $ piecesAt barr (Diag R)
