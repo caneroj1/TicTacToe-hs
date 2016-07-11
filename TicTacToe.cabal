@@ -22,6 +22,7 @@ library
                      , Game.Utils
                      , AI.Minimax
                      , AI.AlphaBeta
+                     , AI.Heuristic
   build-depends:       base >= 4.7 && < 5
                      , text
                      , split
@@ -29,12 +30,21 @@ library
                      , mtl
                      , haskeline
                      , random
+                     , containers
   ghc-options:         -O3
   default-language:    Haskell2010
 
 executable TicTacToe-exe
   hs-source-dirs:      app
   main-is:             Main.hs
+  build-depends:       base
+                     , TicTacToe
+                     , text
+  default-language:    Haskell2010
+
+executable TicTacToe-analysis
+  hs-source-dirs:      app
+  main-is:             Analysis.hs
   build-depends:       base
                      , TicTacToe
                      , text

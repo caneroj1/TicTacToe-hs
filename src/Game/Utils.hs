@@ -44,7 +44,12 @@ opponentMove isX brd = addPiece (snd $ minimax brd Maximize isX) brd
 opponentMoveAB :: Bool -> Board -> Board
 opponentMoveAB isX brd = addPiece move brd
   where
-    (s, move) = alphaBeta brd Maximize isX (minBound :: Int) (maxBound :: Int)
+    (s, move) = alphaBeta brd
+                          Maximize
+                          isX
+                          (minBound :: Int)
+                          (maxBound :: Int)
+                          Nothing
 
 initGame :: IO Players
 initGame = do

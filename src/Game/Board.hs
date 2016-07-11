@@ -7,6 +7,7 @@ module Game.Board
 , emptyBoard
 , addPiece
 , moves
+, getPieces
 , victory
 , allXs
 , allOs
@@ -46,11 +47,7 @@ drawBoard Board { getBoard = b } = pack $
 addPiece :: Piece -> Board -> Board
 addPiece p@(Empty _ _) _           = undefined -- FIXME
 addPiece piece Board{getBoard = b} = Board makeNewBoard
-  where makeNewBoard = b // [((x piece, y piece), piece)]
-        x (X xp _) = xp
-        x (O xp _) = xp
-        y (X _ yp) = yp
-        y (O _ yp) = yp
+  where makeNewBoard = b // [((getX piece, getY piece), piece)]
 
 moves :: Board -> [Piece]
 moves Board{getBoard = b} = keepEmpties $ elems b
@@ -59,6 +56,9 @@ moves Board{getBoard = b} = keepEmpties $ elems b
       filter (\case
         Empty _ _ -> True
         _         -> False)
+
+getPieces :: Board -> (Piece -> Bool) -> [Piece]
+getPieces Board{getBoard = b} pfn = filter pfn $ elems b
 
 victory :: Board -> (Piece -> Bool) -> Bool
 victory Board{getBoard = b} pfn =
